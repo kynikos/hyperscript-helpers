@@ -5,172 +5,28 @@ const startsWith = (string, start) => string[0] === start;
 const isSelector = param =>
   isValidString(param) && (startsWith(param, '.') || startsWith(param, '#'));
 
-const node = h => tagName => (first, ...rest) => {
-  if (isSelector(first)) {
-    return h(tagName + first, ...rest);
-  } else if (typeof first === 'undefined') {
-    return h(tagName);
-  } else {
-    return h(tagName, first, ...rest);
-  }
-};
-
-const TAG_NAMES = [
-  'a',
-  'abbr',
-  'acronym',
-  'address',
-  'applet',
-  'area',
-  'article',
-  'aside',
-  'audio',
-  'b',
-  'base',
-  'basefont',
-  'bdi',
-  'bdo',
-  'bgsound',
-  'big',
-  'blink',
-  'blockquote',
-  'body',
-  'br',
-  'button',
-  'canvas',
-  'caption',
-  'center',
-  'cite',
-  'code',
-  'col',
-  'colgroup',
-  'command',
-  'content',
-  'data',
-  'datalist',
-  'dd',
-  'del',
-  'details',
-  'dfn',
-  'dialog',
-  'dir',
-  'div',
-  'dl',
-  'dt',
-  'element',
-  'em',
-  'embed',
-  'fieldset',
-  'figcaption',
-  'figure',
-  'font',
-  'footer',
-  'form',
-  'frame',
-  'frameset',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'head',
-  'header',
-  'hgroup',
-  'hr',
-  'html',
-  'i',
-  'iframe',
-  'image',
-  'img',
-  'input',
-  'ins',
-  'isindex',
-  'kbd',
-  'keygen',
-  'label',
-  'legend',
-  'li',
-  'link',
-  'listing',
-  'main',
-  'map',
-  'mark',
-  'marquee',
-  'math',
-  'menu',
-  'menuitem',
-  'meta',
-  'meter',
-  'multicol',
-  'nav',
-  'nextid',
-  'nobr',
-  'noembed',
-  'noframes',
-  'noscript',
-  'object',
-  'ol',
-  'optgroup',
-  'option',
-  'output',
-  'p',
-  'param',
-  'picture',
-  'plaintext',
-  'pre',
-  'progress',
-  'q',
-  'rb',
-  'rbc',
-  'rp',
-  'rt',
-  'rtc',
-  'ruby',
-  's',
-  'samp',
-  'script',
-  'section',
-  'select',
-  'shadow',
-  'slot',
-  'small',
-  'source',
-  'spacer',
-  'span',
-  'strike',
-  'strong',
-  'style',
-  'sub',
-  'summary',
-  'sup',
-  'svg',
-  'table',
-  'tbody',
-  'td',
-  'template',
-  'textarea',
-  'tfoot',
-  'th',
-  'thead',
-  'time',
-  'title',
-  'tr',
-  'track',
-  'tt',
-  'u',
-  'ul',
-  'var',
-  'video',
-  'wbr',
-  'xmp'
-];
-
 export default h => {
-  const createTag = node(h);
-  const exported = { TAG_NAMES, isSelector, createTag };
-  TAG_NAMES.forEach(n => {
-    exported[n] = createTag(n);
+  // Inspired by https://stackoverflow.com/a/40075864/645498
+  return new Proxy({}, {
+    get(target, property) {
+      switch (property) {
+      case 'TAG_NAMES':
+        return [];  // TODO: Still useful? How to preserve backward compatibility?
+      case 'createTag':
+        return () => {};  // TODO: Preserve for backward compatibility?
+      case 'isSelector':
+        return isSelector;  // TODO: Still useful to expose this?
+      default:
+        return (first, ...rest) => {
+          if (isSelector(first)) {
+            return h(property + first, ...rest);
+          } else if (typeof first === 'undefined') {
+            return h(property);
+          } else {
+            return h(property, first, ...rest);
+          }
+        };
+      }
+    }
   });
-  return exported;
 };
